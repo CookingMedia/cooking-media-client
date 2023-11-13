@@ -34,8 +34,8 @@ function replaceUrlSearch(queryStr) {
     window.history.pushState({path: newUrl}, '', newUrl);
 }
 
-function prepareQueryStr() {
-    let params = {};
+function prepareQueryStr(page) {
+    let params = { page };
     let searchForm = $("#searchForm input");
     searchForm.each((index, item) => {
         let input = $(item)
@@ -48,7 +48,7 @@ function prepareQueryStr() {
     return jQuery.param(params);
 }
 
-function setPaging(response) {
+function generatePaging(url, response) {
     let paging = response["paging"];
     $("#countLabel").html(response["result"].length);
     $("#totalLabel").html(paging["total"]);
@@ -57,61 +57,62 @@ function setPaging(response) {
     let currentPage = parseInt(paging["page"]);
     let pagingArea = $("#pagingArea");
     pagingArea.html("");
-    let prev = $("<li class='page-item'>").html($("<a class='page-link' onclick='return false'>").html("Previous").on('click', () => moveToPage(1)))
+    let prev = $("<li class='page-item'>").html($("<a class='page-link' onclick='return false'>").html("Previous").on('click', () => search(url, 1)))
     if (currentPage === 1) {
         prev.addClass("disabled");
     }
     pagingArea.append(prev);
     for (let i = 1; i <= pageCount; i++) {
-        let pageA = $("<li class='page-item'>").html($("<a class='page-link' onclick='return false'>").html(i).on('click', () => moveToPage(i)))
+        let pageA = $("<li class='page-item'>").html($("<a class='page-link' onclick='return false'>").html(i).on('click', () => search(url, i)))
         if (i === currentPage) {
             pageA.addClass("active");
         }
         pagingArea.append(pageA);
     }
-    let next = $("<li class='page-item'>").html($("<a class='page-link' onclick='return false'>").html("Next").on('click', () => moveToPage(pageCount)))
+    let next = $("<li class='page-item'>").html($("<a class='page-link' onclick='return false'>").html("Next").on('click', () => search(url, pageCount)))
     if (currentPage === pageCount) {
         next.addClass("disabled");
     }
     pagingArea.append(next);
 }
 
-function getEntityProperties() {
+function getDisplayProperties() {
     let properties = [];
     $("#tableHeader th").each((index, column) => {
-        let propName = column.attr("data-for");
+        let propName = $(column).attr("data-for");
         if (propName != null && propName !== "")
             properties.push(propName);
     });
     return properties;
 }
 
-async function search(url) {
-    let queryStr = prepareQueryStr();
+async function search(url, page = 1) {
+    let queryStr = prepareQueryStr(page);
     replaceUrlSearch(queryStr);
-    $("#resultBody").html(queryStr);
-    url.searchParams = queryStr;
+    $("#resultBody").html("");
+    url.search = queryStr;
     // await setupAuthentication();
     $.ajax({
         url: url.toString(),
         type: "get",
-        contentType: "application/grpc; charset=utf-8",
-        dataType: "grpc",
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
         beforeSend: (request) => {
             request.withCredentials = true;
             request.setRequestHeader("Authorization", `Bearer ${localStorage.getItem("jwtToken")}`)
         },
         success: (response) => {
-            setPaging(response);
-            let properties = getEntityProperties();
-
+            generatePaging(url, response);
+            
+            let displayProperties = getDisplayProperties();
             $.each(response["result"], (index, item) => {
                 $("#resultBody").append($("<tr>"));
 
                 let lastRow = $("#resultBody tr").last();
-                $.each(properties, (prop) => {
-                    lastRow.append($("<td>").html(item[prop]));
+                $.each(displayProperties, (_, prop) => {
+                    lastRow.append($("<td>").html(getProperty(item, prop)));
                 });
+                // TODO: action edit/delete
                 lastRow.append($("<td>"));
             })
         },
@@ -119,6 +120,18 @@ async function search(url) {
     });
 }
 
-function moveToPage(page) {
-    search().then();
+function getProperty(object, propertyPath) {
+    propertyPath = propertyPath.replace(/\[(\w+)]/g, '.$1');
+    propertyPath = propertyPath.replace(/^\./, '');
+    let path = propertyPath.split('.');
+    let len = path.length
+    for (let i = 0; i < len; i++) {
+        let propName = path[i];
+        if (propName in object) {
+            object = object[propName];
+        } else {
+            return;
+        }
+    }
+    return object;
 }

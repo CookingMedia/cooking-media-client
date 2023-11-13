@@ -12,7 +12,7 @@
 function onLogin(form) {
     console.log($(form).serialize())
     $.ajax({
-        url: `${HOST}/api/auth/login`,
+        url: `${HOST}/auth/login`,
         type: "post",
         data: $(form).serialize(),
         contentType: "application/json; charset=utf-8",
