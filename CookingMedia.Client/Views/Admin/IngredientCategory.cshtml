@@ -1,28 +1,28 @@
 ﻿@{
-    ViewBag.Title = "Ingredient";
+    ViewBag.Title = "Ingredient Category";
     Layout = "_Layout";
 }
 
 @section Scripts
 {
     <script>
-        let url = new URL("http://localhost:9876/api/ingredient");
+        let url = new URL("http://localhost:9876/api/ingredient-categories");
         $("#searchBtn").on('click', () => search(url));
     </script>
 }
 
-<h2>Ingredient</h2>
+<h2>Ingredient Category</h2>
 <div class="container-xl">
     <div class="table-responsive">
         <div class="table-wrapper">
             <div class="table-title">
                 <div class="row">
                     <div class="col-sm-6">
-                        <h2>Manage <b>Ingredient</b></h2>
+                        <h2>Manage <b>Ingredient Category</b></h2>
                     </div>
                     <div class="col-sm-6">
                         <a href="/TODO" class="btn btn-success" data-toggle="modal">
-                            <i class="material-icons">&#xE147;</i> <span>Add New Ingredient</span>
+                            <i class="material-icons">&#xE147;</i> <span>Add New Ingredient Category</span>
                         </a>
                     </div>
                 </div>
@@ -31,26 +31,25 @@
                 <form id="searchForm">
                     <div class="row mb-3">
                         <div class="col-6">
-                            <label for="ingredientNameInp" class="form-label">Ingredient name</label>
-                            <input class="form-control" id="ingredientNameInp" name="name"/>
+                            <label for="categoryNameInp" class="form-label">Ingredient category name</label>
+                            <input class="form-control" id="categoryNameInp" name="name"/>
                         </div>
                         <div class="col-6">
-                            @* TODO: ingredient category *@
-                            <label for="unitPriceInput" class="form-label">Ingredient category</label>
-                            <input class="form-control" id="unitPriceInput" name="ingredientCategoryId"/>
+                            @* TODO: select *@
+                            <label for="statusInp" class="form-label">Status</label>
+                            <input class="form-control" id="statusInp" name="status"/>
                         </div>
                     </div>
                     <button type="button" class="btn btn-primary" id="searchBtn">Search</button>
                 </form>
             </div>
             <table class="table table-striped table-hover">
-                <caption>List of ingredient</caption>
+                <caption>List of ingredient category</caption>
                 <thead>
                 <tr id="tableHeader">
                     <th data-for="id">Id</th>
                     <th data-for="name">Name</th>
-                    <th data-for="image">Image</th>
-                    <th data-for="ingredientCategory.name">Category</th>
+                    <th data-for="status">Status</th>
                     <th>Actions</th>
                 </tr>
                 </thead>
